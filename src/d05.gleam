@@ -17,11 +17,11 @@ fn parse_lines() -> List(Int) {
   lines
 }
 
-fn part1() {
+pub fn part1() {
   parse_lines() |> list.reduce(int.max) |> io.debug
 }
 
-fn part2() {
+pub fn part2() {
   parse_lines()
   |> list.sort(int.compare)
   |> list.reduce(fn(prev, curr) {

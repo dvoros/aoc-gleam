@@ -33,7 +33,7 @@ fn has_all_required(pairs: List(#(String, String))) -> Bool {
   })
 }
 
-fn is_valid_part1(pairs: List(#(String, String))) -> Bool {
+pub fn is_valid_part1(pairs: List(#(String, String))) -> Bool {
   has_all_required(pairs)
 }
 
@@ -91,7 +91,7 @@ fn valid_pid(d: dict.Dict(String, String)) -> Bool {
   regex.check(re, pid)
 }
 
-fn is_valid_part2(pairs: List(#(String, String))) -> Bool {
+pub fn is_valid_part2(pairs: List(#(String, String))) -> Bool {
   let d = dict.from_list(pairs)
   pairs |> io.debug
   has_all_required(pairs)
