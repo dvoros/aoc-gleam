@@ -25,9 +25,13 @@ pub fn new_graph() {
 }
 
 pub fn get_nodes_with_edges_from(graph: Graph, node: String) -> List(String) {
+  get_edges_from(graph, node)
+  |> list.map(fn(edge: Edge) { edge.to })
+}
+
+pub fn get_edges_from(graph: Graph, node: String) -> List(Edge) {
   dict.get(graph.edges_from, node)
   |> result.unwrap([])
-  |> list.map(fn(edge: Edge) { edge.to })
 }
 
 pub fn reachable_from(g: Graph, start: String) -> set.Set(String) {
@@ -56,12 +60,18 @@ fn reachable_from_acc(
 pub fn debug_graph(d: Graph) {
   io.debug("from->to")
   dict.each(d.edges_from, fn(a, b) {
-    let tos = list.map(b, fn(edge) { edge.to })
+    let tos =
+      list.map(b, fn(edge) {
+        edge.to <> "(" <> edge.weight |> int.to_string <> ")"
+      })
     io.println(a <> ": " <> string.join(tos, ", "))
   })
   io.debug("to->from")
   dict.each(d.edges_to, fn(a, b) {
-    let tos = list.map(b, fn(edge) { edge.to })
+    let tos =
+      list.map(b, fn(edge) {
+        edge.to <> "(" <> edge.weight |> int.to_string <> ")"
+      })
     io.println(a <> ": " <> string.join(tos, ", "))
   })
 }
@@ -128,22 +138,32 @@ pub fn part1() {
   |> io.debug
 }
 
-// pub fn part2() {
-//   let graph =
-//     parse_lines()
-//     |> list.concat
-//     |> list.fold(dict.new(), fn(g, x) {
-//       let #(l, r, _) = x
-//       add_to_graph(g, r, l)
-//     })
+pub fn count_bags(graph: Graph) -> Int {
+  count_bags_acc(graph, "shiny gold") - 1
+}
 
-//   reachable_from(graph, "shiny gold")
-//   |> set.size
-//   // don't count "shiny gold" itself
-//   |> int.subtract(1)
-//   |> io.debug
-// }
+pub fn count_bags_acc(graph: Graph, from: String) -> Int {
+  get_edges_from(graph, from)
+  |> list.map(fn(e) { e.weight * count_bags_acc(graph, e.to) })
+  |> list.reduce(int.add)
+  |> result.try(fn(x) { Ok(x + 1) })
+  |> result.unwrap(1)
+}
+
+pub fn part2() {
+  let graph =
+    parse_lines()
+    |> list.concat
+    |> list.fold(new_graph(), fn(g, x) {
+      let #(l, r, n) = x
+      add_to_graph(g, l, r, n)
+    })
+
+  count_bags(graph)
+  |> io.debug
+}
 
 pub fn main() {
   part1()
+  part2()
 }
