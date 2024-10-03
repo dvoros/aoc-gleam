@@ -16,7 +16,7 @@ fn read_file_split_by(
 
   case file {
     Error(e) -> Error(e)
-    Ok(content) -> Ok(string.split(content, separator))
+    Ok(content) -> Ok(string.split(string.trim_right(content), separator))
   }
 }
 
