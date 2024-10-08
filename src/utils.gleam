@@ -1,3 +1,4 @@
+import gleam/dict
 import gleam/dynamic.{type Dynamic}
 import gleam/list
 import gleam/result
@@ -38,4 +39,13 @@ pub fn parse_empty_line_separated_blocks_from_file(
 ) {
   use blocks <- result.try(read_file_split_by(name, "\n\n"))
   Ok(blocks |> list.filter_map(parser(_)))
+}
+
+pub fn list_to_dict_by_index(l: List(a)) -> dict.Dict(Int, a) {
+  list.index_map(l, fn(x, i) { #(i, x) })
+  |> dict.from_list()
+}
+
+pub fn ok_identity(x: a) -> Result(a, Nil) {
+  Ok(x)
 }
