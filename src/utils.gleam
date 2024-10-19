@@ -41,11 +41,26 @@ pub fn parse_empty_line_separated_blocks_from_file(
   Ok(blocks |> list.filter_map(parser(_)))
 }
 
+pub fn parse_grid_from_file(
+  name: String,
+) -> dict.Dict(Int, dict.Dict(Int, String)) {
+  let assert Ok(lines) = parse_lines_from_file(name, wrap_in_ok(string_to_dict))
+  list_to_dict_by_index(lines)
+}
+
+pub fn wrap_in_ok(f: fn(a) -> b) -> fn(a) -> Result(b, Nil) {
+  fn(x) { Ok(f(x)) }
+}
+
+pub fn string_to_dict(str: String) -> dict.Dict(Int, String) {
+  list_to_dict_by_index(string.to_graphemes(str))
+}
+
 pub fn list_to_dict_by_index(l: List(a)) -> dict.Dict(Int, a) {
   list.index_map(l, fn(x, i) { #(i, x) })
   |> dict.from_list()
 }
 
-pub fn ok_identity(x: a) -> Result(a, Nil) {
+pub fn ok_i1dentity(x: a) -> Result(a, Nil) {
   Ok(x)
 }
