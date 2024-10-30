@@ -4,7 +4,6 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/pair
-import gleam/set
 import parser
 import utils
 
@@ -184,6 +183,6 @@ pub fn main() {
         |> parser.skip_ws,
     )
 
-  // let _ = part1(fields, nearby_tickets)
+  let _ = part1(fields, nearby_tickets)
   part2(fields, my_ticket, nearby_tickets)
 }
