@@ -152,10 +152,7 @@ fn part2(
 
   let solution = solve(state, [])
 
-  let my_ticket =
-    my_ticket
-    |> list.index_map(fn(t, i) { #(i, t) })
-    |> dict.from_list
+  let my_ticket = utils.list_to_indexed_dict(my_ticket)
 
   solution
   |> list.filter_map(fn(sol) {
