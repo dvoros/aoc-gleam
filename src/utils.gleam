@@ -70,3 +70,20 @@ pub fn list_to_indexed_dict(list: List(a)) -> dict.Dict(Int, a) {
   |> list.index_map(fn(item, index) { #(index, item) })
   |> dict.from_list
 }
+
+pub fn count_same(numbers: List(a), sorted: List(a)) -> Int {
+  do_count_same(numbers, sorted, 0)
+}
+
+pub fn do_count_same(numbers: List(a), sorted: List(a), acc: Int) -> Int {
+  case numbers, sorted {
+    [n, ..nr], [s, ..sr] -> {
+      let newacc = case n == s {
+        True -> acc + 1
+        False -> acc
+      }
+      do_count_same(nr, sr, newacc)
+    }
+    _, _ -> acc
+  }
+}
