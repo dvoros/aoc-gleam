@@ -11,10 +11,14 @@ import utils
 pub type Rows =
   List(String)
 
+pub type Tile {
+  Tile(id: Int, rows: Rows, edges: RowCodes)
+}
+
 pub type RowCodes =
   Set(String)
 
-pub fn parse_block(block: String) -> Result(#(Int, RowCodes), Nil) {
+pub fn parse_block(block: String) -> Result(Tile, Nil) {
   let assert Ok(re) = regex.from_string("^Tile ([0-9]+):$")
 
   let lines =
@@ -28,7 +32,7 @@ pub fn parse_block(block: String) -> Result(#(Int, RowCodes), Nil) {
 
   let edges = edges(rest)
 
-  Ok(#(tile_id, edges))
+  Ok(Tile(tile_id, rest, edges))
 }
 
 pub fn edges(rows: Rows) -> RowCodes {
@@ -52,18 +56,18 @@ pub fn edges(rows: Rows) -> RowCodes {
 pub fn main() {
   let assert Ok(tiles) =
     utils.parse_empty_line_separated_blocks_from_file(
-      "input/d20/input.txt",
+      "input/d20/example.txt",
       parse_block,
     )
 
   tiles
   |> list.map(fn(t1) {
     #(
-      t1.0,
+      t1.id,
       tiles
         |> list.map(fn(t2) {
-          t1.1
-          |> set.intersection(t2.1)
+          t1.edges
+          |> set.intersection(t2.edges)
           |> set.size
         })
         |> list.filter(fn(x) { x == 2 })
