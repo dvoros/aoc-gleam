@@ -32,13 +32,19 @@ pub fn get_edges_from(graph: Graph, node: String) -> List(Edge) {
 }
 
 pub fn reachable_from(g: Graph, start: String) -> set.Set(String) {
-  reachable_from_acc(g, set.from_list([start]), set.from_list([start]))
+  reachable_from_acc(
+    g,
+    set.from_list([start]),
+    set.from_list([start]),
+    set.from_list([]),
+  )
 }
 
 fn reachable_from_acc(
   g: Graph,
   reachable: set.Set(String),
   check: set.Set(String),
+  already_checked: set.Set(String),
 ) -> set.Set(String) {
   case set.is_empty(check) {
     True -> reachable
@@ -47,9 +53,11 @@ fn reachable_from_acc(
         check
         |> set.to_list
         |> list.flat_map(fn(x) { get_nodes_with_edges_from(g, x) })
+        |> list.filter(fn(x) { !set.contains(already_checked, x) })
         |> set.from_list
       let reachable = set.union(reachable, check_next)
-      reachable_from_acc(g, reachable, check_next)
+      let already_checked = set.union(already_checked, check)
+      reachable_from_acc(g, reachable, check_next, already_checked)
     }
   }
 }
