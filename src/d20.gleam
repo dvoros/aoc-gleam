@@ -16,7 +16,7 @@ pub type Tile {
 }
 
 pub type RowCodes =
-  Set(String)
+  List(String)
 
 pub fn parse_block(block: String) -> Result(Tile, Nil) {
   let assert Ok(re) = regex.from_string("^Tile ([0-9]+):$")
@@ -49,8 +49,12 @@ pub fn edges(rows: Rows) -> RowCodes {
     |> list.reduce(string.append)
 
   [top, right, bottom, left]
-  |> list.flat_map(fn(s) { [s, string.reverse(s)] })
-  |> set.from_list
+}
+
+pub fn shares_edge(t1: Tile, t2: Tile) -> Bool {
+  t1.edges
+  |> list.flat_map(fn(e1) { [e1, string.reverse(e1)] })
+  |> list.any(fn(e1) { t2.edges |> list.any(fn(e2) { e1 == e2 }) })
 }
 
 pub fn main() {
@@ -65,12 +69,8 @@ pub fn main() {
     #(
       t1.id,
       tiles
-        |> list.map(fn(t2) {
-          t1.edges
-          |> set.intersection(t2.edges)
-          |> set.size
-        })
-        |> list.filter(fn(x) { x == 2 })
+        |> list.filter(fn(t2) { t1 != t2 })
+        |> list.filter(fn(t2) { shares_edge(t1, t2) })
         |> list.length,
     )
   })
