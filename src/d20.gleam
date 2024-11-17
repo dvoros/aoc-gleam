@@ -51,10 +51,42 @@ pub fn edges(rows: Rows) -> RowCodes {
   [top, right, bottom, left]
 }
 
-pub fn shares_edge(t1: Tile, t2: Tile) -> Bool {
+// matching_edge_indices returns the index of the edge of t1 and t2 that match, and a bool
+// indicating if the match is in reverse orientation.
+pub fn matching_edge_indices(
+  t1: Tile,
+  t2: Tile,
+) -> Result(#(Int, Int, Bool), Nil) {
   t1.edges
-  |> list.flat_map(fn(e1) { [e1, string.reverse(e1)] })
-  |> list.any(fn(e1) { t2.edges |> list.any(fn(e2) { e1 == e2 }) })
+  |> list.index_map(fn(e1, i) {
+    t2.edges
+    |> list.index_map(fn(e2, j) {
+      case e1 == e2, e1 == string.reverse(e2) {
+        True, _ -> Ok(#(i, j, False))
+        _, True -> Ok(#(i, j, True))
+        _, _ -> Error(Nil)
+      }
+    })
+  })
+  |> list.flatten
+  |> list.filter(fn(x) {
+    case x {
+      Ok(_) -> True
+      Error(_) -> False
+    }
+  })
+  |> list.first
+  |> result.unwrap(Error(Nil))
+}
+
+pub fn shares_edge(t1: Tile, t2: Tile) -> Bool {
+  case matching_edge_indices(t1, t2) |> io.debug {
+    Ok(_) -> True
+    Error(_) -> False
+  }
+  // t1.edges
+  // |> list.flat_map(fn(e1) { [e1, string.reverse(e1)] })
+  // |> list.any(fn(e1) { t2.edges |> list.any(fn(e2) { e1 == e2 }) })
 }
 
 pub fn main() {
