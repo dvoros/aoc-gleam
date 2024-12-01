@@ -80,7 +80,7 @@ pub fn first_visibles_in_8_directions(
 }
 
 pub fn part1() {
-  let assert Ok(lines) = utils.read_lines_from_file("input/d11/input.txt")
+  let assert Ok(lines) = utils.read_lines_from_file("input/y2020/d11/input.txt")
   matrix.new_from_string_list(lines)
   |> do_rounds_until_no_change(do_round_part1)
   |> number_of_occupied
@@ -88,7 +88,7 @@ pub fn part1() {
 }
 
 pub fn main() {
-  let assert Ok(lines) = utils.read_lines_from_file("input/d11/input.txt")
+  let assert Ok(lines) = utils.read_lines_from_file("input/y2020/d11/input.txt")
   matrix.new_from_string_list(lines)
   |> do_rounds_until_no_change(do_round_part2)
   |> number_of_occupied

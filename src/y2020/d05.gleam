@@ -6,7 +6,7 @@ import utils
 
 fn parse_lines() -> List(Int) {
   let assert Ok(lines) =
-    utils.parse_lines_from_file("input/d05/input.txt", fn(line) {
+    utils.parse_lines_from_file("input/y2020/d05/input.txt", fn(line) {
       line
       |> string.replace("F", "0")
       |> string.replace("B", "1")

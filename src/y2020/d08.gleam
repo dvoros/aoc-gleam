@@ -114,7 +114,7 @@ pub fn part2(machine: Machine) {
 
 pub fn main() {
   let machine =
-    utils.parse_lines_from_file("input/d08/input.txt", parse_instruction)
+    utils.parse_lines_from_file("input/y2020/d08/input.txt", parse_instruction)
     |> result.unwrap([])
     |> utils.list_to_dict_by_index()
     |> new_machine()

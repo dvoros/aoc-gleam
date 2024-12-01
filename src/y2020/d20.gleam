@@ -4,7 +4,6 @@ import gleam/list
 import gleam/option
 import gleam/regex
 import gleam/result
-import gleam/set.{type Set}
 import gleam/string
 import utils
 
@@ -92,7 +91,7 @@ pub fn shares_edge(t1: Tile, t2: Tile) -> Bool {
 pub fn main() {
   let assert Ok(tiles) =
     utils.parse_empty_line_separated_blocks_from_file(
-      "input/d20/example.txt",
+      "input/y2020/d20/example.txt",
       parse_block,
     )
 

@@ -12,7 +12,7 @@ import utils
 fn parse_lines() -> List(List(#(String, String, Int))) {
   let assert Ok(re) = regex.from_string("^(.*) bags contain (.*).$")
   let assert Ok(lines) =
-    utils.parse_lines_from_file("input/d07/input.txt", fn(line) {
+    utils.parse_lines_from_file("input/y2020/d07/input.txt", fn(line) {
       let assert [match] = regex.scan(re, line)
       let assert [option.Some(left), option.Some(right)] = match.submatches
 

@@ -7,7 +7,7 @@ import utils
 
 pub fn part1() {
   let numbers =
-    utils.parse_lines_from_file("input/d01/input.txt", int.parse)
+    utils.parse_lines_from_file("input/y2020/d01/input.txt", int.parse)
     |> result.unwrap([])
     |> set.from_list
 
@@ -22,7 +22,7 @@ pub fn part1() {
 
 pub fn part2() {
   let numbers =
-    utils.parse_lines_from_file("input/d01/input.txt", int.parse)
+    utils.parse_lines_from_file("input/y2020/d01/input.txt", int.parse)
     |> result.unwrap([])
     |> set.from_list
 

@@ -16,7 +16,7 @@ pub fn part2() {
 pub fn solve(f: fn(set.Set(String), set.Set(String)) -> set.Set(String)) {
   let assert Ok(sets_of_sets) =
     utils.parse_empty_line_separated_blocks_from_file(
-      "input/d06/input.txt",
+      "input/y2020/d06/input.txt",
       fn(block) {
         Ok(
           block

@@ -7,7 +7,7 @@ import utils
 
 pub fn part1() {
   let size = 25
-  utils.parse_lines_from_file("input/d09/input.txt", int.parse)
+  utils.parse_lines_from_file("input/y2020/d09/input.txt", int.parse)
   |> result.unwrap([])
   |> list.window(size + 1)
   |> list.map(fn(x) {
@@ -34,7 +34,7 @@ pub fn part1() {
 
 pub fn part2(p1_res: Int) {
   let numbers =
-    utils.parse_lines_from_file("input/d09/input.txt", int.parse)
+    utils.parse_lines_from_file("input/y2020/d09/input.txt", int.parse)
     |> result.unwrap([])
 
   let count = list.length(numbers)

@@ -170,7 +170,7 @@ fn part2(
 }
 
 pub fn main() {
-  let assert Ok(f) = utils.read_file("input/d16/input.txt")
+  let assert Ok(f) = utils.read_file("input/y2020/d16/input.txt")
 
   let assert Ok(#(fields, my_ticket, nearby_tickets)) =
     parser.parse_entire(

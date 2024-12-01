@@ -53,7 +53,7 @@ fn do_parse_line(
 
 fn part1() {
   let assert Ok(results) =
-    utils.parse_lines_from_file("input/d18/input.txt", parse_line)
+    utils.parse_lines_from_file("input/y2020/d18/input.txt", parse_line)
 
   results
   |> list.reduce(int.add)
@@ -62,7 +62,7 @@ fn part1() {
 
 fn part2() {
   let assert Ok(results) =
-    utils.parse_lines_from_file("input/d18/input.txt", parse_expr)
+    utils.parse_lines_from_file("input/y2020/d18/input.txt", parse_expr)
 
   results
   |> list.map(eval_expr)

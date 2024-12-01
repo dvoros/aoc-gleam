@@ -107,7 +107,7 @@ pub fn is_valid_part2(pairs: List(#(String, String))) -> Bool {
 pub fn main() {
   let blocks =
     utils.parse_empty_line_separated_blocks_from_file(
-      "input/d04/input.txt",
+      "input/y2020/d04/input.txt",
       fn(x) { Ok(x) },
     )
 
