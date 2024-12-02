@@ -1,24 +1,5 @@
-# aoc_gleam
+# Advent of Code in Gleam
 
-[![Package Version](https://img.shields.io/hexpm/v/aoc_gleam)](https://hex.pm/packages/aoc_gleam)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/aoc_gleam/)
-
-```sh
-gleam add aoc_gleam@1
-```
-```gleam
-import aoc_gleam
-
-pub fn main() {
-  // TODO: An example of the project in use
-}
-```
-
-Further documentation can be found at <https://hexdocs.pm/aoc_gleam>.
-
-## Development
-
-```sh
-gleam run   # Run the project
-gleam test  # Run the tests
-```
+Solutions to [Advent of Code](https://adventofcode.com/) problems I wrote
+while learning Gleam from the very basics. Not intended to serve as good
+examples on how to write Gleam nor how to solve AoC challenges. (:
