@@ -305,6 +305,45 @@ pub fn str_of_seq(of parsers: List(Parser(String))) -> Parser(String) {
   |> map(with: str.concat)
 }
 
+fn do_between(
+  input: String,
+  acc: List(a),
+  parser: Parser(a),
+  min: Int,
+  max: Int,
+) -> Result(#(List(a), String), ParseError) {
+  case run(parser, on: input) {
+    Ok(#(value, rest)) -> {
+      case max > 0 {
+        // Max doesn't allow looking for more
+        False -> Ok(#([value, ..acc], rest))
+        // Max allows looking for more
+        True -> do_between(rest, [value, ..acc], parser, min - 1, max - 1)
+      }
+    }
+    Error(err) ->
+      case min <= 0 {
+        // Min is zero, found valid match
+        True -> Ok(#(list.reverse(acc), input))
+        // Min is non-zero, needed more -> invalid
+        False -> Error(err)
+      }
+  }
+}
+
+pub fn between(parser: Parser(a), min: Int, max: Int) -> Parser(List(a)) {
+  create(fn(input) { do_between(input, [], parser, min, max) })
+  |> labeled(
+    with: "between(min: "
+    <> int.to_string(min)
+    <> ", max: "
+    <> int.to_string(max)
+    <> ", of: "
+    <> parser.label
+    <> ")",
+  )
+}
+
 fn do_zero_or_more(input: String, with parser: Parser(a)) -> #(List(a), String) {
   case run(parser, on: input) {
     Ok(#(value, rest)) -> {
