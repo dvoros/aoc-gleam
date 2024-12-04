@@ -18,6 +18,10 @@ pub type Cell(a) {
   Cell(row: Int, column: Int, value: a)
 }
 
+pub fn cell_value(c: Cell(a)) -> a {
+  c.value
+}
+
 pub fn new_from_dict_dict(
   content: dict.Dict(Int, dict.Dict(Int, a)),
 ) -> Matrix(a) {
@@ -106,9 +110,67 @@ pub fn map(mx: Matrix(a), with fun: fn(a, Int, Int) -> a) -> Matrix(a) {
   |> new_from_dict_dict
 }
 
-// pub fn set(mx: Matrix(a), r: Int, c: Int, value: a) -> Matrix(a) {
-//   todo
-// }
+// Gets size #{rows, cols}
+pub fn get_size(mx: Matrix(a)) -> #(Int, Int) {
+  #(
+    dict.size(mx.content),
+    dict.get(mx.content, 0) |> result.unwrap(dict.new()) |> dict.size,
+  )
+}
+
+fn as_list(row_or_col: dict.Dict(Int, a)) -> List(a) {
+  list.range(0, dict.size(row_or_col) - 1)
+  |> list.filter_map(dict.get(row_or_col, _))
+}
+
+pub fn get_row(mx: Matrix(a), r: Int) -> Result(List(a), Nil) {
+  case dict.get(mx.content, r) {
+    Error(e) -> Error(e)
+    Ok(row) -> Ok(as_list(row))
+  }
+}
+
+pub fn rows(mx: Matrix(a)) -> List(List(a)) {
+  list.range(0, get_size(mx).0 - 1)
+  |> list.filter_map(get_row(mx, _))
+}
+
+pub fn cols(mx: Matrix(a)) -> List(List(a)) {
+  let size = get_size(mx)
+  list.range(0, size.1 - 1)
+  |> list.map(fn(col) {
+    list.range(0, size.0 - 1)
+    |> list.filter_map(get(mx, _, col))
+  })
+}
+
+// All major "\" diagonals
+pub fn diagonals_major(mx: Matrix(a)) -> List(List(a)) {
+  list.append(
+    list.range(get_size(mx).1 - 1, 1)
+      |> list.map(fn(c) { #(-1, c - 1) }),
+    list.range(0, get_size(mx).0 - 1)
+      |> list.map(fn(r) { #(r - 1, -1) }),
+  )
+  |> list.map(fn(x) {
+    cells_taking_steps(mx, x, #(1, 1))
+    |> list.map(cell_value)
+  })
+}
+
+// All minor "/" diagonals
+pub fn diagonals_minor(mx: Matrix(a)) -> List(List(a)) {
+  list.append(
+    list.range(0, get_size(mx).0 - 1)
+      |> list.map(fn(r) { #(r + 1, -1) }),
+    list.range(1, get_size(mx).1 - 1)
+      |> list.map(fn(c) { #(get_size(mx).0, c - 1) }),
+  )
+  |> list.map(fn(x) {
+    cells_taking_steps(mx, x, #(-1, 1))
+    |> list.map(cell_value)
+  })
+}
 
 pub fn debug(mx: Matrix(a)) -> Matrix(a) {
   list.range(0, dict.size(mx.content) - 1)
