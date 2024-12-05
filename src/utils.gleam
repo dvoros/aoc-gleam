@@ -7,7 +7,7 @@ import gleam/string
 @external(erlang, "file", "read_file")
 pub fn read_file(name: String) -> Result(String, Dynamic)
 
-fn read_file_split_by(
+pub fn read_file_split_by(
   name: String,
   separator: String,
 ) -> Result(List(String), String) {
