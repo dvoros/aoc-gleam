@@ -61,7 +61,12 @@ pub fn list_to_dict_by_index(l: List(a)) -> dict.Dict(Int, a) {
   |> dict.from_list()
 }
 
-pub fn ok_i1dentity(x: a) -> Result(a, Nil) {
+pub fn list_get_by_index(l: List(a), i: Int) -> Result(a, Nil) {
+  list_to_dict_by_index(l)
+  |> dict.get(i)
+}
+
+pub fn ok_identity(x: a) -> Result(a, Nil) {
   Ok(x)
 }
 
