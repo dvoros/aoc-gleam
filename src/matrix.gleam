@@ -6,6 +6,8 @@ import gleam/result
 import gleam/string
 import utils
 
+pub const coords_4neighbors = [#(-1, 0), #(0, -1), #(0, 1), #(1, 0)]
+
 pub const coords_8neighbors = [
   #(-1, -1), #(-1, 0), #(-1, 1), #(0, -1), #(0, 1), #(1, -1), #(1, 0), #(1, 1),
 ]
@@ -45,6 +47,26 @@ pub fn new_from_string_list(l: List(String)) -> Matrix(String) {
 pub fn get(mx: Matrix(a), r: Int, c: Int) -> Result(a, Nil) {
   use row <- result.try(dict.get(mx.content, r))
   dict.get(row, c)
+}
+
+pub fn filter(
+  mx: Matrix(a),
+  where predicate: fn(a, Int, Int) -> Bool,
+) -> List(Cell(a)) {
+  mx.content
+  |> dict.to_list
+  |> list.flat_map(fn(r) {
+    let #(r, row) = r
+    row
+    |> dict.to_list
+    |> list.filter_map(fn(c) {
+      let #(c, val) = c
+      case predicate(val, r, c) {
+        True -> Ok(Cell(r, c, val))
+        False -> Error(Nil)
+      }
+    })
+  })
 }
 
 // Count cells for which a predicate is True.
@@ -93,6 +115,59 @@ fn cells_taking_steps_acc(
   }
 }
 
+pub fn find_target4(
+  mx: Matrix(a),
+  from: #(Int, Int),
+  target: fn(Cell(a)) -> Bool,
+  step_allowed: fn(Cell(a), Cell(a)) -> Bool,
+) {
+  do_find_target4(mx, from, target, step_allowed, [])
+}
+
+fn do_find_target4(
+  mx: Matrix(a),
+  from: #(Int, Int),
+  target: fn(Cell(a)) -> Bool,
+  step_allowed: fn(Cell(a), Cell(a)) -> Bool,
+  path: List(Cell(a)),
+) -> List(List(Cell(a))) {
+  let assert Ok(v) = get(mx, from.0, from.1)
+  let from_cell = Cell(from.0, from.1, v)
+  case target(from_cell) {
+    True -> [[from_cell, ..path]]
+    False -> {
+      allowed_steps4(mx, from, step_allowed)
+      |> list.flat_map(fn(next_cell) {
+        let next_path = [from_cell, ..path]
+        let next_coords = #(next_cell.row, next_cell.column)
+        do_find_target4(mx, next_coords, target, step_allowed, next_path)
+      })
+    }
+  }
+}
+
+pub fn allowed_steps4(
+  mx: Matrix(a),
+  from: #(Int, Int),
+  step_allowed: fn(Cell(a), Cell(a)) -> Bool,
+) {
+  let assert Ok(from_val) = get(mx, from.0, from.1)
+  let from_cell = Cell(from.0, from.1, from_val)
+  neighbors4_cells(mx, from)
+  |> list.filter(step_allowed(from_cell, _))
+}
+
+pub fn neighbors4_cells(mx: Matrix(a), from: #(Int, Int)) -> List(Cell(a)) {
+  coords_4neighbors
+  |> list.filter_map(fn(d) {
+    let t = #(from.0 + d.0, from.1 + d.1)
+    case get(mx, t.0, t.1) {
+      Ok(v) -> Ok(Cell(t.0, t.1, v))
+      Error(v) -> Error(v)
+    }
+  })
+}
+
 // Returns the neighboring 8 values. If on edge or in corner, it'll
 // return fewer.
 pub fn neighbors8(mx: Matrix(a), r: Int, c: Int) -> List(a) {
@@ -101,7 +176,7 @@ pub fn neighbors8(mx: Matrix(a), r: Int, c: Int) -> List(a) {
 }
 
 // Create new Matrix by applying a function on all cells.
-pub fn map(mx: Matrix(a), with fun: fn(a, Int, Int) -> a) -> Matrix(a) {
+pub fn map(mx: Matrix(a), with fun: fn(a, Int, Int) -> b) -> Matrix(b) {
   mx.content
   |> dict.map_values(fn(r, row) {
     row
