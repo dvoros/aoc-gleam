@@ -30,7 +30,7 @@ fn count(turns: Int, n: Int, c: Cache) -> #(Int, Cache) {
       case dict.get(c, #(turns, n)) {
         Ok(res) -> #(res, dict.new())
         _ -> {
-          let res = case n == 0, is_even_digit(n) {
+          case n == 0, is_even_digit(n) {
             True, _ -> count(turns - 1, 1, c)
             _, True -> {
               split(n)
