@@ -53,6 +53,6 @@ pub fn main() {
       )
     })
 
-  part1(paths)
-  part2(paths)
+  let _ = part1(paths)
+  let _ = part2(paths)
 }
