@@ -1,8 +1,13 @@
+import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/pair
 import gleam/string
 import utils
+
+type Cache =
+  dict.Dict(#(Int, Int), Int)
 
 fn is_even_digit(number: Int) -> Bool {
   let digits = number |> int.to_string |> string.length
@@ -18,23 +23,29 @@ fn split(number: Int) -> List(Int) {
   |> list.filter_map(int.parse)
 }
 
-fn blink(numbers: List(Int)) -> List(Int) {
-  numbers
-  |> list.flat_map(fn(n) {
-    case n == 0, is_even_digit(n) {
-      True, _ -> [1]
-      _, True -> split(n)
-      _, _ -> [n * 2024]
+fn count(turns: Int, n: Int, c: Cache) -> #(Int, Cache) {
+  let res = case turns == 0 {
+    True -> #(1, dict.new())
+    False -> {
+      case dict.get(c, #(turns, n)) {
+        Ok(res) -> #(res, dict.new())
+        _ -> {
+          let res = case n == 0, is_even_digit(n) {
+            True, _ -> count(turns - 1, 1, c)
+            _, True -> {
+              split(n)
+              |> list.fold(#(0, dict.new()), fn(acc, n) {
+                let res = count(turns - 1, n, dict.merge(c, acc.1))
+                #(acc.0 + res.0, dict.merge(acc.1, res.1))
+              })
+            }
+            _, _ -> count(turns - 1, n * 2024, c)
+          }
+        }
+      }
     }
-  })
-}
-
-fn repeat(times: Int, func: fn(a) -> a, input: a) {
-  io.debug(times)
-  case times == 0 {
-    True -> input
-    False -> repeat(times - 1, func, func(input))
   }
+  #(res.0, dict.insert(res.1, #(turns, n), res.0))
 }
 
 pub fn main() {
@@ -44,7 +55,11 @@ pub fn main() {
     line
     |> list.filter_map(int.parse)
 
-  repeat(25, blink, numbers)
-  |> list.length
+  numbers
+  |> list.fold(#(0, dict.new()), fn(acc, n) {
+    let res = count(75, n, acc.1)
+    #(acc.0 + res.0, dict.merge(acc.1, res.1))
+  })
+  |> pair.first
   |> io.debug
 }
