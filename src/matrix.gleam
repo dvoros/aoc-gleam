@@ -4,6 +4,7 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/result
+import gleam/set
 import gleam/string
 import utils
 
@@ -186,6 +187,71 @@ pub fn allowed_steps4(
   |> list.filter(step_allowed(from_cell, _))
 }
 
+pub fn flood_all(mx: Matrix(a)) -> List(List(Cell(a))) {
+  do_flood_all(mx, get_all_cells(mx), [])
+}
+
+fn do_flood_all(
+  mx: Matrix(a),
+  remaining: List(Cell(a)),
+  acc: List(List(Cell(a))),
+) -> List(List(Cell(a))) {
+  case remaining {
+    [] -> acc
+    [first, ..] -> {
+      let assert Ok(flooded) = flood(mx, #(first.row, first.column))
+      let remaining =
+        remaining
+        |> list.filter(fn(c) { !list.contains(flooded, c) })
+
+      do_flood_all(mx, remaining, [flooded, ..acc])
+    }
+  }
+}
+
+// Find connected (4-neighbors) region of same values starting
+// from a single position.
+pub fn flood(mx: Matrix(a), from: #(Int, Int)) -> Result(List(Cell(a)), Nil) {
+  use from_val <- result.try(get(mx, from.0, from.1))
+
+  Ok(
+    do_flood(
+      mx,
+      from_val,
+      set.from_list([from]),
+      set.from_list([Cell(from.0, from.1, from_val)]),
+    )
+    |> set.to_list,
+  )
+}
+
+fn do_flood(
+  mx: Matrix(a),
+  val: a,
+  new: set.Set(#(Int, Int)),
+  acc: set.Set(Cell(a)),
+) {
+  case set.to_list(new) {
+    [] -> acc
+    [first, ..rest] -> {
+      let new_neighbors =
+        neighbors4_cells(mx, first)
+        |> list.filter(fn(x) { x.value == val && !set.contains(acc, x) })
+        |> set.from_list
+
+      do_flood(
+        mx,
+        val,
+        set.union(
+          set.from_list(rest),
+          new_neighbors |> set.map(fn(c) { #(c.row, c.column) }),
+        ),
+        set.union(acc, new_neighbors),
+      )
+    }
+  }
+}
+
 pub fn neighbors4_cells(mx: Matrix(a), from: #(Int, Int)) -> List(Cell(a)) {
   coords_4neighbors
   |> list.filter_map(fn(d) {
@@ -214,7 +280,19 @@ pub fn map(mx: Matrix(a), with fun: fn(a, Int, Int) -> b) -> Matrix(b) {
   |> new_from_dict_dict
 }
 
-// Gets size #{rows, cols}
+pub fn get_all_cells(mx: Matrix(a)) -> List(Cell(a)) {
+  let size = get_size(mx)
+
+  list.range(0, size.0 - 1)
+  |> list.flat_map(fn(r) {
+    list.range(0, size.1 - 1)
+    |> list.map(fn(c) {
+      let assert Ok(val) = get(mx, r, c)
+      Cell(r, c, val)
+    })
+  })
+}
+
 pub fn get_size(mx: Matrix(a)) -> #(Int, Int) {
   #(
     dict.size(mx.content),
