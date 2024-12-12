@@ -1,3 +1,4 @@
+import gleam/bool
 import gleam/dict
 import gleam/int
 import gleam/io
@@ -88,12 +89,40 @@ pub fn count(mx: Matrix(a), where predicate: fn(a, Int, Int) -> Bool) -> Int {
   }
 }
 
+fn stop_when_out_of_bounds(mx: Matrix(a), coord: #(Int, Int)) -> Bool {
+  case get(mx, coord.0, coord.1) {
+    Ok(_) -> False
+    Error(_) -> True
+  }
+}
+
+pub fn path_until(
+  mx: Matrix(a),
+  from: #(Int, Int),
+  step: #(Int, Int),
+  until stop: fn(Matrix(a), #(Int, Int)) -> Bool,
+) {
+  cells_taking_steps_acc(
+    mx,
+    #(from.0 + step.0, from.1 + step.1),
+    step,
+    [],
+    stop,
+  )
+}
+
 pub fn cells_taking_steps(
   mx: Matrix(a),
   from: #(Int, Int),
   taking step: #(Int, Int),
 ) -> List(Cell(a)) {
-  cells_taking_steps_acc(mx, #(from.0 + step.0, from.1 + step.1), step, [])
+  cells_taking_steps_acc(
+    mx,
+    #(from.0 + step.0, from.1 + step.1),
+    step,
+    [],
+    stop_when_out_of_bounds,
+  )
 }
 
 fn cells_taking_steps_acc(
@@ -101,18 +130,18 @@ fn cells_taking_steps_acc(
   from: #(Int, Int),
   step: #(Int, Int),
   acc: List(Cell(a)),
+  until stop: fn(Matrix(a), #(Int, Int)) -> Bool,
 ) -> List(Cell(a)) {
-  let curr = get(mx, from.0, from.1)
-  case curr {
-    Error(_) -> acc
-    Ok(x) ->
-      cells_taking_steps_acc(
-        mx,
-        #(from.0 + step.0, from.1 + step.1),
-        step,
-        list.append(acc, [Cell(from.0, from.1, x)]),
-      )
-  }
+  use <- bool.guard(when: stop(mx, from), return: acc)
+  let assert Ok(x) = get(mx, from.0, from.1)
+
+  cells_taking_steps_acc(
+    mx,
+    #(from.0 + step.0, from.1 + step.1),
+    step,
+    list.append(acc, [Cell(from.0, from.1, x)]),
+    stop_when_out_of_bounds,
+  )
 }
 
 pub fn find_target4(
