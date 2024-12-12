@@ -76,12 +76,12 @@ pub fn list_to_indexed_dict(list: List(a)) -> dict.Dict(Int, a) {
   |> dict.from_list
 }
 
-pub fn count_same(numbers: List(a), sorted: List(a)) -> Int {
-  do_count_same(numbers, sorted, 0)
+pub fn count_same(l1: List(a), l2: List(a)) -> Int {
+  do_count_same(l1, l2, 0)
 }
 
-pub fn do_count_same(numbers: List(a), sorted: List(a), acc: Int) -> Int {
-  case numbers, sorted {
+pub fn do_count_same(l1: List(a), l2: List(a), acc: Int) -> Int {
+  case l1, l2 {
     [n, ..nr], [s, ..sr] -> {
       let newacc = case n == s {
         True -> acc + 1
@@ -90,5 +90,33 @@ pub fn do_count_same(numbers: List(a), sorted: List(a), acc: Int) -> Int {
       do_count_same(nr, sr, newacc)
     }
     _, _ -> acc
+  }
+}
+
+pub fn group(
+  elements: List(a),
+  can_be_grouped: fn(a, a) -> Bool,
+) -> List(List(a)) {
+  do_group(elements, can_be_grouped, [])
+}
+
+pub fn do_group(
+  ungrouped: List(a),
+  can_be_grouped: fn(a, a) -> Bool,
+  groups: List(List(a)),
+) -> List(List(a)) {
+  case ungrouped {
+    [] -> groups
+    [elem, ..rest] -> {
+      let #(friends, foes) =
+        list.partition(groups, fn(group) {
+          group |> list.any(can_be_grouped(elem, _))
+        })
+
+      let friends = friends |> list.concat
+      let new_group = [elem, ..friends]
+
+      do_group(rest, can_be_grouped, [new_group, ..foes])
+    }
   }
 }
