@@ -399,12 +399,19 @@ pub fn sep0(parser: Parser(a), by separator: Parser(b)) -> Parser(List(a)) {
 }
 
 pub fn int() -> Parser(Int) {
-  digit()
-  |> str_of_many1
-  |> flat_map(with: fn(int_string) {
-    int_string
+  opt(literal("-"))
+  |> then(digit() |> str_of_many1)
+  |> flat_map(with: fn(in) {
+    let #(sign, digits) = in
+    digits
     |> int.parse
-    |> res.replace_error(InvalidOperation(ran: "int.parse", with: int_string))
+    |> res.try(fn(n) {
+      Ok(case sign {
+        Some(_) -> n * -1
+        None -> n
+      })
+    })
+    |> res.replace_error(InvalidOperation(ran: "int.parse", with: digits))
   })
   |> labeled(with: "int")
 }
