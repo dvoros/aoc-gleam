@@ -26,6 +26,10 @@ pub fn cell_value(c: Cell(a)) -> a {
   c.value
 }
 
+pub fn cell_coord(c: Cell(_)) -> #(Int, Int) {
+  #(c.row, c.column)
+}
+
 pub fn new_from_dict_dict(
   content: dict.Dict(Int, dict.Dict(Int, a)),
 ) -> Matrix(a) {
@@ -49,6 +53,16 @@ pub fn new_from_string_list(l: List(String)) -> Matrix(String) {
 pub fn get(mx: Matrix(a), r: Int, c: Int) -> Result(a, Nil) {
   use row <- result.try(dict.get(mx.content, r))
   dict.get(row, c)
+}
+
+pub fn set(mx: Matrix(a), row: Int, col: Int, value: a) -> Matrix(a) {
+  mx
+  |> map(fn(v, r, c) {
+    case r == row && c == col {
+      True -> value
+      False -> v
+    }
+  })
 }
 
 pub fn filter(
