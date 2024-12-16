@@ -22,12 +22,19 @@ pub type Cell(a) {
   Cell(row: Int, column: Int, value: a)
 }
 
+pub type Coord =
+  #(Int, Int)
+
 pub fn cell_value(c: Cell(a)) -> a {
   c.value
 }
 
-pub fn cell_coord(c: Cell(_)) -> #(Int, Int) {
+pub fn cell_coord(c: Cell(_)) -> Coord {
   #(c.row, c.column)
+}
+
+pub fn add_coord(c1: Coord, c2: Coord) -> Coord {
+  #(c1.0 + c2.0, c1.1 + c2.1)
 }
 
 pub fn new_from_dict_dict(
@@ -48,6 +55,10 @@ pub fn new_from_string_list(l: List(String)) -> Matrix(String) {
   |> list.map(utils.string_to_dict)
   |> utils.list_to_dict_by_index
   |> new_from_dict_dict
+}
+
+pub fn get_by_coord(mx: Matrix(a), c: Coord) -> Result(a, Nil) {
+  get(mx, c.0, c.1)
 }
 
 pub fn get(mx: Matrix(a), r: Int, c: Int) -> Result(a, Nil) {
@@ -282,6 +293,10 @@ pub fn neighbors4_cells(mx: Matrix(a), from: #(Int, Int)) -> List(Cell(a)) {
 pub fn neighbors8(mx: Matrix(a), r: Int, c: Int) -> List(a) {
   coords_8neighbors
   |> list.filter_map(fn(p) { get(mx, r + p.0, c + p.1) })
+}
+
+pub fn map_by_coord(mx: Matrix(a), with fun: fn(a, Coord) -> b) -> Matrix(b) {
+  map(mx, fn(val: a, r: Int, c: Int) { fun(val, #(r, c)) })
 }
 
 // Create new Matrix by applying a function on all cells.
