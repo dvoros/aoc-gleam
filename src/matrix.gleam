@@ -277,10 +277,21 @@ fn do_flood(
   }
 }
 
+pub fn neighbors4_coords(from: Coord, size: Coord) -> List(Coord) {
+  coords_4neighbors
+  |> list.filter_map(fn(d) {
+    let t = add_coord(from, d)
+    case t.0 >= 0 && t.0 <= size.0 && t.1 >= 0 && t.1 <= size.1 {
+      True -> Ok(t)
+      False -> Error(Nil)
+    }
+  })
+}
+
 pub fn neighbors4_cells(mx: Matrix(a), from: #(Int, Int)) -> List(Cell(a)) {
   coords_4neighbors
   |> list.filter_map(fn(d) {
-    let t = #(from.0 + d.0, from.1 + d.1)
+    let t = add_coord(from, d)
     case get(mx, t.0, t.1) {
       Ok(v) -> Ok(Cell(t.0, t.1, v))
       Error(v) -> Error(v)
