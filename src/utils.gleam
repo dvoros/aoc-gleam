@@ -120,3 +120,17 @@ pub fn do_group(
     }
   }
 }
+
+pub fn intpow(base: Int, exponent: Int) -> Int {
+  case exponent >= 0 {
+    True -> do_intpow(base, exponent, 1)
+    False -> 0
+  }
+}
+
+fn do_intpow(base: Int, exponent: Int, acc: Int) {
+  case exponent {
+    0 -> acc
+    _ -> do_intpow(base, exponent - 1, acc * base)
+  }
+}
