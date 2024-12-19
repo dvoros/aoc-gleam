@@ -37,6 +37,10 @@ pub fn add_coord(c1: Coord, c2: Coord) -> Coord {
   #(c1.0 + c2.0, c1.1 + c2.1)
 }
 
+pub fn rotate_coord_right(c: Coord) -> Coord {
+  #(c.1, -c.0)
+}
+
 pub fn new_from_dict_dict(
   content: dict.Dict(Int, dict.Dict(Int, a)),
 ) -> Matrix(a) {
@@ -64,6 +68,10 @@ pub fn get_by_coord(mx: Matrix(a), c: Coord) -> Result(a, Nil) {
 pub fn get(mx: Matrix(a), r: Int, c: Int) -> Result(a, Nil) {
   use row <- result.try(dict.get(mx.content, r))
   dict.get(row, c)
+}
+
+pub fn set_by_coord(mx: Matrix(a), c: Coord, value: a) -> Matrix(a) {
+  set(mx, c.0, c.1, value)
 }
 
 pub fn set(mx: Matrix(a), row: Int, col: Int, value: a) -> Matrix(a) {
