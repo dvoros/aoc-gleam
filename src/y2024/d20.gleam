@@ -3,12 +3,9 @@ import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/pair
 import gleam/result
 import matrix.{type Coord, type Matrix}
 import utils
-
-const part1_jumps = [#(-2, 0), #(2, 0), #(0, -2), #(0, 2)]
 
 fn len(c: Coord) {
   int.absolute_value(c.0) + int.absolute_value(c.1)
@@ -93,7 +90,7 @@ pub fn main() {
     |> list.map(matrix.cell_coord)
     |> list.first
 
-  let cheats =
+  let _cheats =
     find_path(mx, start, end)
     |> path_to_dict
     |> cheats(jumps(20))

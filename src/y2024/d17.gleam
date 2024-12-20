@@ -1,4 +1,3 @@
-import gleam/bool
 import gleam/int
 import gleam/io
 import gleam/list
