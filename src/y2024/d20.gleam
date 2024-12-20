@@ -3,11 +3,29 @@ import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/pair
 import gleam/result
 import matrix.{type Coord, type Matrix}
 import utils
 
-const jumps = [#(-2, 0), #(2, 0), #(0, -2), #(0, 2)]
+const part1_jumps = [#(-2, 0), #(2, 0), #(0, -2), #(0, 2)]
+
+fn len(c: Coord) {
+  int.absolute_value(c.0) + int.absolute_value(c.1)
+}
+
+fn jumps(max: Int) {
+  list.range(-max, max)
+  |> list.flat_map(fn(r) {
+    list.range(-max, max)
+    |> list.filter_map(fn(c) {
+      case len(#(r, c)) <= max {
+        True -> Ok(#(r, c))
+        False -> Error(Nil)
+      }
+    })
+  })
+}
 
 fn path_to_dict(path: List(Coord)) -> dict.Dict(Coord, Int) {
   path
@@ -38,17 +56,19 @@ fn do_find_path(mx: Matrix(String), from: Coord, to: Coord, acc: List(Coord)) {
   do_find_path(mx, next, to, [from, ..acc])
 }
 
-fn cheats(path: dict.Dict(Coord, Int)) {
+fn cheats(path: dict.Dict(Coord, Int), jumps: List(Coord)) {
   path
   |> dict.map_values(fn(c, i) {
     jumps
-    |> list.map(fn(jump) {
+    |> list.filter_map(fn(jump) {
       let target_coord = matrix.add_coord(c, jump)
       let target_value = dict.get(path, target_coord) |> result.unwrap(-1)
 
-      case target_value > i + 2 {
-        True -> target_value - { i + 2 }
-        False -> 0
+      let length = len(jump)
+
+      case target_value > i + length {
+        True -> Ok(target_value - { i + length })
+        False -> Error(Nil)
       }
     })
     |> list.filter(fn(v) { v >= 100 })
@@ -73,8 +93,9 @@ pub fn main() {
     |> list.map(matrix.cell_coord)
     |> list.first
 
-  find_path(mx, start, end)
-  |> path_to_dict
-  |> cheats
-  |> io.debug
+  let cheats =
+    find_path(mx, start, end)
+    |> path_to_dict
+    |> cheats(jumps(20))
+    |> io.debug
 }
