@@ -37,6 +37,10 @@ pub fn add_coord(c1: Coord, c2: Coord) -> Coord {
   #(c1.0 + c2.0, c1.1 + c2.1)
 }
 
+pub fn subtract_coord(c1: Coord, c2: Coord) -> Coord {
+  #(c1.0 - c2.0, c1.1 - c2.1)
+}
+
 pub fn rotate_coord_right(c: Coord) -> Coord {
   #(c.1, -c.0)
 }
