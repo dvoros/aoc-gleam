@@ -1,6 +1,8 @@
 import gleam/dict
 import gleam/dynamic.{type Dynamic}
+import gleam/int
 import gleam/list
+import gleam/order
 import gleam/result
 import gleam/string
 
@@ -132,5 +134,13 @@ fn do_intpow(base: Int, exponent: Int, acc: Int) {
   case exponent {
     0 -> acc
     _ -> do_intpow(base, exponent - 1, acc * base)
+  }
+}
+
+pub fn sign(n: Int) -> Int {
+  case int.compare(n, 0) {
+    order.Lt -> -1
+    order.Eq -> 0
+    order.Gt -> 1
   }
 }
