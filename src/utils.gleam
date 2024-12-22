@@ -19,7 +19,7 @@ pub fn read_file_split_by(
 
   case file {
     Error(e) -> Error(e)
-    Ok(content) -> Ok(string.split(string.trim_right(content), separator))
+    Ok(content) -> Ok(string.split(string.trim_end(content), separator))
   }
 }
 
@@ -115,7 +115,7 @@ pub fn do_group(
           group |> list.any(can_be_grouped(elem, _))
         })
 
-      let friends = friends |> list.concat
+      let friends = friends |> list.flatten
       let new_group = [elem, ..friends]
 
       do_group(rest, can_be_grouped, [new_group, ..foes])
