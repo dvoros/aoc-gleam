@@ -1,7 +1,9 @@
 import gleam/bool
+import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
+import gleam/result
 import gleam/string
 import matrix.{type Coord, type Matrix}
 import utils
@@ -90,32 +92,106 @@ pub fn sequence(
   }
 }
 
-fn complexity(numpad: Matrix(String), dirpad: Matrix(String), code: String) {
+fn complexity(
+  numpad: Matrix(String),
+  dirpad: Matrix(String),
+  code: String,
+  cache: dict.Dict(#(String, String, Int), Int),
+  depth: Int,
+) {
   let assert Ok(shortest) =
     sequence(numpad, "A", code |> string.to_graphemes)
-    |> list.flat_map(fn(numseq) { sequence(dirpad, "A", numseq) })
-    |> list.flat_map(fn(dirseq) { sequence(dirpad, "A", dirseq) })
-    |> list.map(list.length)
-    |> list.sort(int.compare)
-    |> list.first
+    |> list.map(fn(seq) {
+      let assert Ok(res) =
+        ["A", ..seq]
+        |> list.window_by_2
+        |> list.map(fn(window) {
+          let #(from, to) = window
+          min_presses_for(dirpad, from, to, depth, cache)
+        })
+        |> list.reduce(int.add)
+
+      res
+    })
+    |> list.reduce(int.min)
+
   let assert Ok(numeric_part) = code |> string.drop_end(1) |> int.parse
 
   shortest * numeric_part
 }
 
+fn min_presses_for(
+  dirpad: Matrix(String),
+  from: String,
+  to: String,
+  at_level: Int,
+  cache: dict.Dict(#(String, String, Int), Int),
+) {
+  use <- bool.guard(when: at_level == 1, return: 1)
+  let cached_value = dict.get(cache, #(from, to, at_level))
+  use <- bool.guard(
+    when: cached_value != Error(Nil),
+    return: cached_value |> result.unwrap(0),
+  )
+
+  let assert Ok(res) =
+    paths(dirpad, from, to)
+    |> list.map(fn(path) {
+      let assert Ok(res) =
+        ["A", ..path]
+        |> list.window_by_2
+        |> list.map(fn(window) {
+          let #(innex_from, inner_to) = window
+          min_presses_for(dirpad, innex_from, inner_to, at_level - 1, cache)
+        })
+        |> list.reduce(int.add)
+
+      res
+    })
+    |> list.reduce(int.min)
+
+  res
+}
+
+fn build_cache(
+  dirpad: Matrix(String),
+  depth: Int,
+) -> dict.Dict(#(String, String, Int), Int) {
+  let dirs = ["^", "<", ">", "v", "A"]
+  list.range(1, depth)
+  |> list.fold(dict.new(), fn(cache, level) {
+    dirs
+    |> list.fold(cache, fn(cache, from) {
+      dirs
+      |> list.fold(cache, fn(cache, to) {
+        use <- bool.guard(when: from == to, return: cache)
+        dict.insert(
+          cache,
+          #(from, to, level),
+          min_presses_for(dirpad, from, to, level, cache),
+        )
+      })
+    })
+  })
+}
+
 pub fn main() {
   let assert Ok(codes) = utils.read_lines_from_file("input/y2024/d21/input.txt")
 
-  let numpad =
-    matrix.new_from_string_list(["789", "456", "123", "x0A"])
-    |> matrix.debug
+  let numpad = matrix.new_from_string_list(["789", "456", "123", "x0A"])
 
-  let dirpad =
-    matrix.new_from_string_list(["x^A", "<v>"])
-    |> matrix.debug
+  let dirpad = matrix.new_from_string_list(["x^A", "<v>"])
+
+  let cache = build_cache(dirpad, 26)
+
+  let _ =
+    codes
+    |> list.map(complexity(numpad, dirpad, _, cache, 3))
+    |> list.reduce(int.add)
+    |> io.debug
 
   codes
-  |> list.map(complexity(numpad, dirpad, _))
+  |> list.map(complexity(numpad, dirpad, _, cache, 26))
   |> list.reduce(int.add)
   |> io.debug
 }
