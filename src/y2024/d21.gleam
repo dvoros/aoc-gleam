@@ -1,10 +1,7 @@
 import gleam/bool
-import gleam/dict
 import gleam/int
 import gleam/io
 import gleam/list
-import gleam/pair
-import gleam/result
 import gleam/string
 import matrix.{type Coord, type Matrix}
 import utils
@@ -93,77 +90,21 @@ pub fn sequence(
   }
 }
 
-type Cache =
-  dict.Dict(#(List(String), Int), Int)
-
-fn find_shortest(
-  dirpad: Matrix(String),
-  seq: List(String),
-  depth: Int,
-  cache: Cache,
-) -> #(Int, Cache) {
-  let cache_key = #(seq, depth)
-  case dict.get(cache, cache_key) {
-    Ok(c) -> #(c, cache)
-    Error(_) -> {
-      case depth {
-        1 -> {
-          let res =
-            sequence(dirpad, "A", seq)
-            |> list.map(list.length)
-            |> list.sort(int.compare)
-            |> list.first
-            |> result.unwrap(-1)
-          #(res, dict.insert(cache, cache_key, res))
-        }
-        _ -> {
-          let #(cache, results) =
-            sequence(dirpad, "A", seq)
-            |> list.map_fold(cache, fn(cache, next_seq) {
-              find_shortest(dirpad, next_seq, depth - 1, cache)
-              |> pair.swap
-            })
-
-          let res =
-            results
-            |> list.sort(int.compare)
-            |> list.first
-            |> result.unwrap(-1)
-
-          let cache = dict.insert(cache, cache_key, res)
-
-          #(res, cache)
-        }
-      }
-    }
-  }
-}
-
 fn complexity(numpad: Matrix(String), dirpad: Matrix(String), code: String) {
-  // let assert Ok(shortest) =
-  // sequence(numpad, "A", code |> string.to_graphemes)
-  // |> list.flat_map(fn(numseq) { sequence(dirpad, "A", numseq) })
-  // |> list.flat_map(fn(dirseq) { sequence(dirpad, "A", dirseq) })
-  // |> list.map(list.length)
-  // |> list.sort(int.compare)
-  // |> list.first
   let assert Ok(shortest) =
     sequence(numpad, "A", code |> string.to_graphemes)
-    |> list.map_fold(dict.new(), fn(cache, seq) {
-      find_shortest(dirpad, seq, 2, cache) |> pair.swap
-    })
-    |> pair.second
+    |> list.flat_map(fn(numseq) { sequence(dirpad, "A", numseq) })
+    |> list.flat_map(fn(dirseq) { sequence(dirpad, "A", dirseq) })
+    |> list.map(list.length)
     |> list.sort(int.compare)
     |> list.first
-
   let assert Ok(numeric_part) = code |> string.drop_end(1) |> int.parse
 
   shortest * numeric_part
 }
 
 pub fn main() {
-  let assert Ok(codes) =
-    utils.read_lines_from_file("input/y2024/d21/example.txt")
+  let assert Ok(codes) = utils.read_lines_from_file("input/y2024/d21/input.txt")
 
   let numpad =
     matrix.new_from_string_list(["789", "456", "123", "x0A"])
