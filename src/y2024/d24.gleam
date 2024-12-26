@@ -69,6 +69,36 @@ fn z_value(c: Circuit) -> Int {
   })
 }
 
+pub fn part1(c: Circuit) {
+  simulate_until_stable(c)
+  |> z_value
+  |> io.debug
+}
+
+pub fn dot(gates: List(Gate)) {
+  io.println("digraph {")
+  gates
+  |> list.each(fn(g) {
+    let color = case g.op {
+      And -> "red"
+      Or -> "blue"
+      Xor -> "green"
+    }
+    io.println("  " <> g.in1 <> " -> " <> g.out <> " [color =" <> color <> "];")
+    io.println("  " <> g.in2 <> " -> " <> g.out <> " [color =" <> color <> "];")
+    case g.out {
+      "z" <> _z ->
+        io.println("  " <> g.out <> " [style=filled,fillcolor=grey];")
+      _ -> Nil
+    }
+  })
+  io.println("}")
+}
+
+pub fn part2(c: Circuit) {
+  c.gates |> dot
+}
+
 pub fn main() {
   let assert Ok([wire_values, gates]) =
     utils.read_file_split_by("input/y2024/d24/input.txt", "\n\n")
@@ -99,7 +129,7 @@ pub fn main() {
     })
 
   let c = Circuit(wires, gates)
-  simulate_until_stable(c)
-  |> z_value
-  |> io.debug
+
+  // part1(c)
+  part2(c)
 }
