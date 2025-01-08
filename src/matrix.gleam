@@ -1,8 +1,8 @@
 import gleam/bool
 import gleam/dict
-import gleam/int
 import gleam/io
 import gleam/list
+import gleam/pair
 import gleam/result
 import gleam/set
 import gleam/string
@@ -15,7 +15,7 @@ pub const coords_8neighbors = [
 ]
 
 pub type Matrix(a) {
-  Matrix(content: dict.Dict(Int, dict.Dict(Int, a)))
+  Matrix(size: #(Int, Int), content: dict.Dict(#(Int, Int), a))
 }
 
 pub type Cell(a) {
@@ -48,7 +48,23 @@ pub fn rotate_coord_right(c: Coord) -> Coord {
 pub fn new_from_dict_dict(
   content: dict.Dict(Int, dict.Dict(Int, a)),
 ) -> Matrix(a) {
-  Matrix(content)
+  let rows = content |> dict.size
+  let cols =
+    content
+    |> dict.to_list
+    |> list.first
+    |> result.unwrap(#(0, dict.new()))
+    |> pair.second
+    |> dict.size
+
+  let content =
+    content
+    |> dict.fold(dict.new(), fn(acc, r, row) {
+      row
+      |> dict.fold(acc, fn(acc, c, val) { acc |> dict.insert(#(r, c), val) })
+    })
+
+  Matrix(#(rows, cols), content)
 }
 
 pub fn new_from_list_list(l: List(List(a))) -> Matrix(a) {
@@ -70,8 +86,7 @@ pub fn get_by_coord(mx: Matrix(a), c: Coord) -> Result(a, Nil) {
 }
 
 pub fn get(mx: Matrix(a), r: Int, c: Int) -> Result(a, Nil) {
-  use row <- result.try(dict.get(mx.content, r))
-  dict.get(row, c)
+  dict.get(mx.content, #(r, c))
 }
 
 pub fn set_by_coord(mx: Matrix(a), c: Coord, value: a) -> Matrix(a) {
@@ -94,37 +109,18 @@ pub fn filter(
 ) -> List(Cell(a)) {
   mx.content
   |> dict.to_list
-  |> list.flat_map(fn(r) {
-    let #(r, row) = r
-    row
-    |> dict.to_list
-    |> list.filter_map(fn(c) {
-      let #(c, val) = c
-      case predicate(val, r, c) {
-        True -> Ok(Cell(r, c, val))
-        False -> Error(Nil)
-      }
-    })
+  |> list.filter_map(fn(x) {
+    let #(#(r, c), val) = x
+    case predicate(val, r, c) {
+      True -> Ok(Cell(r, c, val))
+      False -> Error(Nil)
+    }
   })
 }
 
 // Count cells for which a predicate is True.
 pub fn count(mx: Matrix(a), where predicate: fn(a, Int, Int) -> Bool) -> Int {
-  let res =
-    mx.content
-    |> dict.map_values(fn(r, row) {
-      row
-      |> dict.map_values(fn(c, val) { predicate(val, r, c) })
-      |> dict.to_list
-      |> list.count(fn(x) { x.1 })
-    })
-    |> dict.to_list
-    |> list.map(fn(x) { x.1 })
-    |> list.reduce(int.add)
-  case res {
-    Ok(r) -> r
-    _ -> 0
-  }
+  filter(mx, predicate) |> list.length
 }
 
 fn stop_when_out_of_bounds(mx: Matrix(a), coord: #(Int, Int)) -> Bool {
@@ -324,12 +320,11 @@ pub fn map_by_coord(mx: Matrix(a), with fun: fn(a, Coord) -> b) -> Matrix(b) {
 
 // Create new Matrix by applying a function on all cells.
 pub fn map(mx: Matrix(a), with fun: fn(a, Int, Int) -> b) -> Matrix(b) {
-  mx.content
-  |> dict.map_values(fn(r, row) {
-    row
-    |> dict.map_values(fn(c, val) { fun(val, r, c) })
-  })
-  |> new_from_dict_dict
+  let content =
+    mx.content
+    |> dict.map_values(fn(k, v) { fun(v, k.0, k.1) })
+
+  Matrix(mx.size, content)
 }
 
 pub fn get_all_cells(mx: Matrix(a)) -> List(Cell(a)) {
@@ -346,21 +341,21 @@ pub fn get_all_cells(mx: Matrix(a)) -> List(Cell(a)) {
 }
 
 pub fn get_size(mx: Matrix(a)) -> #(Int, Int) {
-  #(
-    dict.size(mx.content),
-    dict.get(mx.content, 0) |> result.unwrap(dict.new()) |> dict.size,
-  )
-}
-
-fn as_list(row_or_col: dict.Dict(Int, a)) -> List(a) {
-  list.range(0, dict.size(row_or_col) - 1)
-  |> list.filter_map(dict.get(row_or_col, _))
+  mx.size
 }
 
 pub fn get_row(mx: Matrix(a), r: Int) -> Result(List(a), Nil) {
-  case dict.get(mx.content, r) {
-    Error(e) -> Error(e)
-    Ok(row) -> Ok(as_list(row))
+  case r >= mx.size.0 || r < 0 {
+    True -> Error(Nil)
+    False -> {
+      Ok(
+        list.range(0, mx.size.1 - 1)
+        |> list.map(fn(c) {
+          let assert Ok(val) = get(mx, r, c)
+          val
+        }),
+      )
+    }
   }
 }
 
@@ -407,12 +402,11 @@ pub fn diagonals_minor(mx: Matrix(a)) -> List(List(a)) {
 }
 
 pub fn debug(mx: Matrix(a)) -> Matrix(a) {
-  list.range(0, dict.size(mx.content) - 1)
+  list.range(0, mx.size.0 - 1)
   |> list.each(fn(x) {
-    let assert Ok(row) = mx.content |> dict.get(x)
-    list.range(0, dict.size(row) - 1)
+    list.range(0, mx.size.1 - 1)
     |> list.each(fn(y) {
-      let assert Ok(elem) = row |> dict.get(y)
+      let assert Ok(elem) = mx |> get(x, y)
       io.print(elem |> string.inspect)
       io.print(" ")
     })

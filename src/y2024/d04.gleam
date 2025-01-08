@@ -6,7 +6,7 @@ import matrix
 import utils
 
 pub fn part1(mx: matrix.Matrix(String)) {
-  list.concat([
+  list.flatten([
     matrix.cols(mx),
     matrix.rows(mx),
     matrix.diagonals_major(mx),
